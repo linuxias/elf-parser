@@ -35,7 +35,14 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
+	mem = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (mem == MAP_FAILED) {
+		perror("mmap");
+		exit(-1);
+	}
+
 	close(fd);
+	munmap(mem, st.st_size);
 
 	return 0;
 }

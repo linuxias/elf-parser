@@ -20,6 +20,10 @@ int main(int argc, char *argv[])
 	char *string_table;
 	char *interp;
 
+	Elf32_Ehdr *ehdr = NULL;
+	Elf32_Phdr *phdr = NULL;
+	Elf32_Shdr *shdr = NULL;
+
 	if (argc < 2) {
 		printf("Usage: %s <executable>\n", argv[0]);
 		exit(0);
@@ -44,6 +48,10 @@ int main(int argc, char *argv[])
 		perror("mmap");
 		exit(-1);
 	}
+
+	ehdr = (Elf32_Ehdr *)mem;
+	phdr = (Elf32_Phdr *)&mem[ehdr->e_phoff];
+	shdr = (Elf32_Shdr *)&mem[ehdr->e_shoff];
 
 	close(fd);
 	munmap(mem, st.st_size);

@@ -1,10 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <fctrl.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <elf.h>
+#include <sys/mman.h>
 
 int main(int argc, char *argv[])
 {
@@ -24,14 +28,14 @@ int main(int argc, char *argv[])
 	errno = 0;
 	fd = open(argv[1], O_RDONLY);
 	if (errno < 0 || fd == -1) {
-		perror("open %d", errno);
+		perror("open");
 		exit(-1);
 	}
 
 	errno = 0;
 	ret = fstat(fd, &st);
 	if (ret < 0) {
-		perror("fstat %d", errno);
+		perror("fstat");
 		exit(-1);
 	}
 

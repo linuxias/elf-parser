@@ -10,6 +10,19 @@
 #include <elf.h>
 #include <sys/mman.h>
 
+static int __is_validate_file(uint8_t *mem)
+{
+#define FIRST_MAGIC_STRING 0x7f
+#define ELF_STRING "ELF"
+
+	if (mem[0] != FIRST_MAGIC_STRING && strcmp(&mem[1], ELF_STRING)) {
+		fprintf(stderr, "Not an ELF");
+		return -1;
+	}
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	int ret;
@@ -52,6 +65,11 @@ int main(int argc, char *argv[])
 	ehdr = (Elf32_Ehdr *)mem;
 	phdr = (Elf32_Phdr *)&mem[ehdr->e_phoff];
 	shdr = (Elf32_Shdr *)&mem[ehdr->e_shoff];
+
+	if (__is_validate_file(mem) < 0) {
+		printf("%d is not ELF file");
+		exit(-1);
+	}
 
 	close(fd);
 	munmap(mem, st.st_size);

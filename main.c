@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	shdr = (Elf32_Shdr *)&mem[ehdr->e_shoff];
 
 	if (__is_validate_file(mem) < 0) {
-		printf("%d is not ELF file");
+		printf("%s is not ELF file", argv[1]);
 		exit(-1);
 	}
 

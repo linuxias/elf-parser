@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
 {
 	int ret;
 	int fd;
-	int i;
 	uint8_t *mem;
 	struct stat st;
 	char *string_table;

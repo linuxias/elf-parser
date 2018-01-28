@@ -15,8 +15,15 @@ static int __is_validate_file(uint8_t *mem)
 #define FIRST_MAGIC_STRING 0x7f
 #define ELF_STRING "ELF"
 
+	Elf32_Ehdr *ehdr = (Elf32_Ehdr *)mem;
+
 	if (mem[0] != FIRST_MAGIC_STRING && strcmp(&mem[1], ELF_STRING)) {
 		fprintf(stderr, "Not an ELF");
+		return -1;
+	}
+
+	if (ehdr->e_type != ET_EXEC) {
+		fprintF(stderr, "Not executable");
 		return -1;
 	}
 
@@ -66,9 +73,11 @@ int main(int argc, char *argv[])
 	shdr = (Elf32_Shdr *)&mem[ehdr->e_shoff];
 
 	if (__is_validate_file(mem) < 0) {
-		printf("%s is not ELF file", argv[1]);
+		printf("%s is invalide file", argv[1]);
 		exit(-1);
 	}
+
+
 
 	close(fd);
 	munmap(mem, st.st_size);

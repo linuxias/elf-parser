@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 	struct stat st;
 	char *string_table;
 	char *interp;
+	int i;
 
 	Elf32_Ehdr *ehdr = NULL;
 	Elf32_Phdr *phdr = NULL;
@@ -77,7 +78,39 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
+	printf("Program Entry point : 0x%x\n", ehdr->e_entry);
 
+	printf("Section Header list:\n");
+	string_table = &mem[shdr[ehdr->e_shstrndex].sh_offset];
+	for (i = 0; i < ehdr->e_shnum; i++)
+		printf("%s : 0x%x\n", &string_table[shdr[i].sh_name], shdr[i].sh_addr);
+	printf("\n");
+
+	printf("Program Header list:\n");
+	for (i = 0; i < ehdr->e_phnum; i++) {
+		switch(phdr[i].p_type) {
+			case PT_LOAD :
+				if (phdr[i].p_offset == 0)
+					printf("Text segment: 0x%x\n", phdr[i].p_vaddr);
+				else
+					printf("Data segment: 0x%x\n", phdr[i].p_vaddr);
+			break;
+			case PT_INTERP :
+				interp = strdup((char *)&mem[phdr[i].p_offset]);
+				printf("Interpreter: %s\n", interp);
+				free(interp);
+			break;
+			case PT_NOTE :
+				printf("Note segment: 0x%x\n", phdr[i].p_vaddr);
+			break;
+			case PT_DYNAMIC:
+				printf("Dynamic segment: 0x%x\n", phdr[i].p_vaddr);
+			break;
+			case PT_PHDR:
+				printf("Phdr segment: 0x%x\n", phdr[i].p_vaddr);
+			break;
+		}
+	}
 
 	close(fd);
 	munmap(mem, st.st_size);

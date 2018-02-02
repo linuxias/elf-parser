@@ -39,11 +39,6 @@ static int __is_executable()
 		return -1;
 	}
 
-	if (info->ehdr->e_type != ET_EXEC) {
-		fprintf(stderr, "Not executable");
-		return -1;
-	}
-
 	return 0;
 }
 

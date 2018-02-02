@@ -202,6 +202,7 @@ static const char *__get_elf_header_machine(unsigned int machine)
 		case EM_FR20:		return "Fujitsu FR20";
 		case EM_RH32:		return "TRW RH32";
 		case EM_ARM:		return "ARM";
+		case EM_AARCH64:		return "AArch64";
 		case EM_SH:			return "Renesas / SuperH SH";
 		case EM_SPARCV9:		return "Sparc v9";
 		case EM_TRICORE:		return "Siemens Tricore";

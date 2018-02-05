@@ -263,25 +263,48 @@ static const char *__get_elf_header_machine(unsigned int machine)
 
 static void __print_elf_header(Elf64_Ehdr *ehdr)
 {
-	printf("ELF Header:");
-	printf("Magic : ");
+	printf("ELF Header:\n");
+	printf("  Magic : ");
 	for (int i = 0; i < EI_NIDENT; i++) {
 		printf("%02x ", ehdr->e_ident[i]);
 	}
 	printf("\n");
-	printf("  Class: %s\n",
+	printf("  Class:                                  %s\n",
 			__get_elf_header_class(ehdr->e_ident[EI_CLASS]));
-	printf("  Data: %s\n",
+	printf("  Data:                                   %s\n",
 			__get_elf_header_data(ehdr->e_ident[EI_DATA]));
-	printf("  Version: %d(%s)\n", ehdr->e_ident[EI_VERSION],
-			__get_elf_header_version(ehdr->e_ident[EI_VERSION]));
-	printf("  OS/ABI: %s\n",
+	printf("  Version:                                %d(%s)\n",
+			ehdr->e_ident[EI_VERSION], __get_elf_header_version(ehdr->e_ident[EI_VERSION]));
+	printf("  OS/ABI:                                 %s\n",
 			__get_elf_header_osabi(ehdr->e_ident[EI_OSABI]));
-	printf("  ABI Version: %d\n", ehdr->e_ident[EI_ABIVERSION]);
-	printf("  Type: %s\n",
+	printf("  ABI Version:                            %d\n",
+			ehdr->e_ident[EI_ABIVERSION]);
+	printf("  Type:                                   %s\n",
 			__get_elf_header_type(ehdr->e_type));
-	printf("  Machine: %s\n",
+	printf("  Machine:                                %s\n",
 			__get_elf_header_machine(ehdr->e_machine));
+	printf("  Version:                                0x%d\n",
+			ehdr->e_version);
+	printf("  Entry point address:                    0x%lx\n",
+			ehdr->e_entry);
+	printf("  Start of program headers:               %lu (bytes into file)\n",
+			ehdr->e_phoff);
+	printf("  Start of section headers:               %lu (bytes into file)\n",
+			ehdr->e_shoff);
+	printf("  Flags:                                  0x%x\n",
+			ehdr->e_flags);
+	printf("  Size of this headers:                   %d (byte)\n",
+			ehdr->e_ehsize);
+	printf("  Size of program headers:                %d (byte)\n",
+			ehdr->e_phentsize);
+	printf("  Number of program headers:              %d\n",
+			ehdr->e_phnum);
+	printf("  Size of section headers:                %d (byte)\n",
+			ehdr->e_shentsize);
+	printf("  Number of section headers:              %d\n",
+			ehdr->e_shnum);
+	printf("  Section header string table index:      %d\n",
+			ehdr->e_shstrndx);
 	printf("\n");
 }
 

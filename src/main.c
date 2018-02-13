@@ -58,6 +58,7 @@ static void __run_option(int argc, char *argv[])
 				elf_parser_print_header(info, ELF_PARSER_SECTION_HEADER);
 				break;
 			default:
+				__print_usage();
 				break;
 		}
 	}
@@ -65,8 +66,8 @@ static void __run_option(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-		printf("Usage: %s <executable>\n", argv[0]);
+	if (argc < 3) {
+		__printf_usage();
 		exit(0);
 	}
 

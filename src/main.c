@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "elf_parser.h"
+#include "elf_parser_private.h"
 #include "ftrace_private.h"
 
 const char *short_options = "heps";
@@ -34,6 +35,9 @@ static void __run_option(int argc, char *argv[])
 {
 	int opt = -1;
 	int opt_idx = 0;
+	elf_info_s info;
+
+	info = init_elf_info(argv[2]);
 
 	while (1) {
 		opt = getopt_long(argc, argv, short_options, long_options, &opt_idx);
@@ -45,13 +49,13 @@ static void __run_option(int argc, char *argv[])
 				__print_usage();
 				break;
 			case FTRACE_OPT_ELF:
-				elf_parser_print_header(argv[2], ELF_PARSER_ELF_HEADER);
+				elf_parser_print_header(info, ELF_PARSER_ELF_HEADER);
 				break;
 			case FTRACE_OPT_PROGRAM:
-				elf_parser_print_header(argv[2], ELF_PARSER_PROGRAM_HEADER);
+				elf_parser_print_header(info, ELF_PARSER_PROGRAM_HEADER);
 				break;
 			case FTRACE_OPT_SECTION:
-				elf_parser_print_header(argv[2], ELF_PARSER_SECTION_HEADER);
+				elf_parser_print_header(info, ELF_PARSER_SECTION_HEADER);
 				break;
 			default:
 				break;

@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+typedef struct elf_info *elf_info_s;
+
 struct elf_info {
 	Elf64_Ehdr *ehdr;
 	Elf64_Phdr *phdr;
@@ -18,8 +20,6 @@ struct elf_info {
 	struct user_regs_struct pt_reg;
 	char *exec;
 } elf_info;
-
-typedef struct elf_info *elf_info_s;
 
 #define EHDR_DATA_LSB "2's complement, little endian"
 #define EHDR_DATA_MSB "2's complement, big endian"

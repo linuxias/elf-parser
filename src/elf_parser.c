@@ -13,15 +13,7 @@
 #include "elf_parser.h"
 #include "elf_parser_private.h"
 
-static elf_info_s info;
-
-static void __destroy_elf_info()
-{
-	if (info)
-		free(info);
-}
-
-static int __is_executable()
+static int is_elf_file(elf_info_s info)
 {
 #define FIRST_MAGIC_STRING 0x7f
 #define ELF_STRING "ELF"
@@ -32,52 +24,6 @@ static int __is_executable()
 	}
 
 	return 0;
-}
-
-static void __init_elf_info(const char *elf_file)
-{
-	int fd;
-	struct stat st;
-
-	if (info != NULL)
-		return;
-
-	info = (elf_info_s)calloc(1, sizeof(struct elf_info));
-	if (info == NULL) {
-		fprintf(stderr, "OOM");
-		exit(-1);
-	}
-
-	errno = 0;
-	fd = open(elf_file, O_RDONLY);
-	if (errno < 0 || fd == -1) {
-		perror("open");
-		exit(-1);
-	}
-
-	errno = 0;
-	if (fstat(fd, &st) < 0) {
-		perror("fstat");
-		exit(-1);
-	}
-
-	info->mem = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (info->mem == MAP_FAILED) {
-		perror("mmap");
-		exit(-1);
-	}
-
-	info->ehdr = (Elf64_Ehdr *)info->mem;
-	info->phdr = (Elf64_Phdr *)&(info->mem[info->ehdr->e_phoff]);
-	info->shdr = (Elf64_Shdr *)&(info->mem[info->ehdr->e_shoff]);
-
-	if (__is_executable() < 0) {
-		fprintf(stderr, "%s is not ELF file", elf_file);
-		__destroy_elf_info();
-		exit(-1);
-	}
-
-	close(fd);
 }
 
 static const char *__get_elf_header_class(unsigned int class)
@@ -253,8 +199,10 @@ static const char *__get_elf_header_machine(unsigned int machine)
 	}
 }
 
-static void __print_elf_header(Elf64_Ehdr *ehdr)
+static void __print_elf_header(elf_info_s info)
 {
+	Elf64_Ehdr *ehdr = info->ehdr;
+
 	printf("ELF Header:\n");
 	printf("  Magic : ");
 	for (int i = 0; i < EI_NIDENT; i++) {
@@ -300,10 +248,11 @@ static void __print_elf_header(Elf64_Ehdr *ehdr)
 	printf("\n");
 }
 
-static void __print_section_header(Elf64_Shdr *shdr)
+static void __print_section_header(elf_info_s info)
 {
 	int i;
 	unsigned char *string_table;
+	Elf64_Shdr *shdr = info->shdr;
 
 	printf("\n =====\tSection Header\t===== \n");
 	string_table = &info->mem[shdr[info->ehdr->e_shstrndx].sh_offset];
@@ -312,10 +261,11 @@ static void __print_section_header(Elf64_Shdr *shdr)
 	printf("\n");
 }
 
-static void __print_program_header(Elf64_Phdr *phdr)
+static void __print_program_header(elf_info_s info)
 {
 	char *interp;
 	int i;
+	Elf64_Phdr *phdr = info->phdr;
 
 	printf("\n =====\tProgram Header\t===== \n");
 	for (i = 0; i < info->ehdr->e_phnum; i++) {
@@ -344,20 +294,17 @@ static void __print_program_header(Elf64_Phdr *phdr)
 	}
 }
 
-void elf_parser_print_header(const char *elf_file, elf_parser_header_type_e type)
+void elf_parser_print_header(elf_info_s info, elf_parser_header_type_e type)
 {
-	if (info == NULL)
-		__init_elf_info(elf_file);
-
 	switch(type) {
 		case ELF_PARSER_ELF_HEADER:
-			__print_elf_header(info->ehdr);
+			__print_elf_header(info);
 			break;
 		case ELF_PARSER_PROGRAM_HEADER:
-			__print_program_header(info->phdr);
+			__print_program_header(info);
 			break;
 		case ELF_PARSER_SECTION_HEADER:
-			__print_section_header(info->shdr);
+			__print_section_header(info);
 			break;
 		case ELF_PARSER_ELF_ALL:
 		case ELF_PARSER_MAX:
@@ -366,3 +313,56 @@ void elf_parser_print_header(const char *elf_file, elf_parser_header_type_e type
 			break;
 	}
 }
+
+void destroy_elf_info(elf_info_s info)
+{
+	if (info)
+		free(info);
+}
+
+elf_info_s init_elf_info(const char *elf_file)
+{
+	int fd;
+	struct stat st;
+	elf_info_s info = NULL;
+
+	info = (elf_info_s)calloc(1, sizeof(struct elf_info));
+	if (info == NULL) {
+		fprintf(stderr, "OOM");
+		exit(-1);
+	}
+
+	errno = 0;
+	fd = open(elf_file, O_RDONLY);
+	if (errno < 0 || fd == -1) {
+		perror("open");
+		exit(-1);
+	}
+
+	errno = 0;
+	if (fstat(fd, &st) < 0) {
+		perror("fstat");
+		exit(-1);
+	}
+
+	info->mem = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (info->mem == MAP_FAILED) {
+		perror("mmap");
+		exit(-1);
+	}
+
+	info->ehdr = (Elf64_Ehdr *)info->mem;
+	info->phdr = (Elf64_Phdr *)&(info->mem[info->ehdr->e_phoff]);
+	info->shdr = (Elf64_Shdr *)&(info->mem[info->ehdr->e_shoff]);
+
+	if (is_elf_file(info) < 0) {
+		fprintf(stderr, "%s is not ELF file", elf_file);
+		destroy_elf_info(info);
+		exit(-1);
+	}
+
+	close(fd);
+
+	return info;
+}
+

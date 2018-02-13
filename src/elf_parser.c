@@ -13,14 +13,6 @@
 #include "elf_parser.h"
 #include "elf_parser_private.h"
 
-typedef struct elf_info *elf_info_s;
-struct elf_info {
-	uint8_t *mem;
-	Elf64_Ehdr *ehdr;
-	Elf64_Phdr *phdr;
-	Elf64_Shdr *shdr;
-} elf_info;
-
 static elf_info_s info;
 
 static void __destroy_elf_info()

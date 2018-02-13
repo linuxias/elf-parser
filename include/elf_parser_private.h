@@ -1,9 +1,25 @@
 #ifndef __ELF_PARSER_PRIVATE_H__
 #define __ELF_PARSER_PRIVATE_H__
 
+#include <sys/user.h>
+#include <sys/types.h>
+#include <elf.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct elf_info {
+	Elf64_Ehdr *ehdr;
+	Elf64_Phdr *phdr;
+	Elf64_Shdr *shdr;
+	uint8_t *mem;
+	char *symname;
+	struct user_regs_struct pt_reg;
+	char *exec;
+} elf_info;
+
+typedef struct elf_info *elf_info_s;
 
 #define EHDR_DATA_LSB "2's complement, little endian"
 #define EHDR_DATA_MSB "2's complement, big endian"

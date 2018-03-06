@@ -366,3 +366,4 @@ elf_info_s init_elf_info(const char *elf_file)
 	return info;
 }
 
+

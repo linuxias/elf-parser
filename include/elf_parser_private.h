@@ -21,6 +21,16 @@ struct elf_info {
 	char *exec;
 } elf_info;
 
+struct elf_info_32 {
+	Elf32_Ehdr *ehdr;
+	Elf32_Phdr *phdr;
+	Elf32_Shdr *shdr;
+	uint8_t *mem;
+	char *symname;
+	struct user_regs_struct pt_reg;
+	char *exec;
+}
+
 #define EHDR_DATA_LSB "2's complement, little endian"
 #define EHDR_DATA_MSB "2's complement, big endian"
 

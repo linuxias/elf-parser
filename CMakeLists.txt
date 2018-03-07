@@ -10,7 +10,7 @@ SET(OUTPUT_ELF
 	"${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}-${PROJECT_VERSION_MINOR}"
 )
 
-SET(SRC 
+SET(SRC
 	./src/main.c
 	./src/elf_parser.c
 )

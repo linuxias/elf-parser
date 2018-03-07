@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 typedef struct elf_info *elf_info_s;
+typedef struct elf_info_2 *elf_info_32_s;
 
 struct elf_info {
 	Elf64_Ehdr *ehdr;
@@ -29,7 +30,7 @@ struct elf_info_32 {
 	char *symname;
 	struct user_regs_struct pt_reg;
 	char *exec;
-}
+} elf_info_32;
 
 #define EHDR_DATA_LSB "2's complement, little endian"
 #define EHDR_DATA_MSB "2's complement, big endian"

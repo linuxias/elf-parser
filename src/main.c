@@ -67,7 +67,7 @@ static void __run_option(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	if (argc < 3) {
-		__printf_usage();
+		__print_usage();
 		exit(0);
 	}
 

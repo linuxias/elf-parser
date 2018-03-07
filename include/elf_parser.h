@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-typedef enum elf_parser_header_type {
+typedef enum _elf_parser_header_type {
 	ELF_PARSER_ELF_ALL = -1,
 	ELF_PARSER_ELF_HEADER,
 	ELF_PARSER_PROGRAM_HEADER,
@@ -24,5 +24,4 @@ void destroy_elf_info(elf_info_s info);
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* __ELF_PARSER_H__ */

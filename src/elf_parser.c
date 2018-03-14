@@ -199,7 +199,7 @@ static const char *__get_elf_header_machine(unsigned int machine)
 	}
 }
 
-static void __print_elf_header(elf_h handle)
+static void __print_elf64_header(elf_h handle)
 {
 	elf64_info_s info = handle->elf64;
 	Elf64_Ehdr *ehdr = info->ehdr;
@@ -231,6 +231,56 @@ static void __print_elf_header(elf_h handle)
 	printf("  Start of program headers:               %lu (bytes into file)\n",
 			ehdr->e_phoff);
 	printf("  Start of section headers:               %lu (bytes into file)\n",
+			ehdr->e_shoff);
+	printf("  Flags:                                  0x%x\n",
+			ehdr->e_flags);
+	printf("  Size of this headers:                   %d (byte)\n",
+			ehdr->e_ehsize);
+	printf("  Size of program headers:                %d (byte)\n",
+			ehdr->e_phentsize);
+	printf("  Number of program headers:              %d\n",
+			ehdr->e_phnum);
+	printf("  Size of section headers:                %d (byte)\n",
+			ehdr->e_shentsize);
+	printf("  Number of section headers:              %d\n",
+			ehdr->e_shnum);
+	printf("  Section header string table index:      %d\n",
+			ehdr->e_shstrndx);
+	printf("\n");
+}
+
+static void __print_elf32_header(elf_h handle)
+{
+	elf32_info_s info = handle->elf32;
+	Elf32_Ehdr *ehdr = info->ehdr;
+
+	printf("ELF Header:\n");
+	printf("  Magic : ");
+	for (int i = 0; i < EI_NIDENT; i++) {
+		printf("%02x ", ehdr->e_ident[i]);
+	}
+	printf("\n");
+	printf("  Class:                                  %s\n",
+			__get_elf_header_class(ehdr->e_ident[EI_CLASS]));
+	printf("  Data:                                   %s\n",
+			__get_elf_header_data(ehdr->e_ident[EI_DATA]));
+	printf("  Version:                                %d(%s)\n",
+			ehdr->e_ident[EI_VERSION], __get_elf_header_version(ehdr->e_ident[EI_VERSION]));
+	printf("  OS/ABI:                                 %s\n",
+			__get_elf_header_osabi(ehdr->e_ident[EI_OSABI]));
+	printf("  ABI Version:                            %d\n",
+			ehdr->e_ident[EI_ABIVERSION]);
+	printf("  Type:                                   %s\n",
+			__get_elf_header_type(ehdr->e_type));
+	printf("  Machine:                                %s\n",
+			__get_elf_header_machine(ehdr->e_machine));
+	printf("  Version:                                0x%d\n",
+			ehdr->e_version);
+	printf("  Entry point address:                    0x%x\n",
+			ehdr->e_entry);
+	printf("  Start of program headers:               %u (bytes into file)\n",
+			ehdr->e_phoff);
+	printf("  Start of section headers:               %u (bytes into file)\n",
 			ehdr->e_shoff);
 	printf("  Flags:                                  0x%x\n",
 			ehdr->e_flags);
@@ -362,9 +412,14 @@ static void __set_elf_info(int fd, elf_h *handle)
 
 void elf_parser_print_header(elf_h handle, elf_parser_header_type_e type)
 {
+	int is_32bit = handle->arch == ELF32 ? 1 : 0;
+
 	switch(type) {
 		case ELF_PARSER_ELF_HEADER:
-			__print_elf_header(handle);
+			if (is_32bit)
+				__print_elf32_header(handle);
+			else
+				__print_elf64_header(handle);
 			break;
 		case ELF_PARSER_PROGRAM_HEADER:
 			__print_program_header(handle);

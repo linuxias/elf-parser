@@ -37,7 +37,7 @@ static void __run_option(int argc, char *argv[])
 {
 	int opt = -1;
 	int opt_idx = 0;
-	elf_info_s info;
+	elf_h info;
 
 	info = init_elf_info(argv[2]);
 

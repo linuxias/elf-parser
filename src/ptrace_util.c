@@ -80,7 +80,7 @@ int ptrace_util_attch(ptrace_info_s info)
 	return 0;
 }
 
-Elf64_Addr lookup_symbol(elf_info_s info, const char *symname)
+Elf64_Addr lookup_symbol(elf64_info_s info, const char *symname)
 {
 	int i, j;
 	char *strtab = NULL;

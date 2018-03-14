@@ -13,12 +13,12 @@
 #include "elf_parser.h"
 #include "elf_parser_private.h"
 
-static int is_elf_file(elf_info_s info)
+static int is_elf_file(elf_h handle)
 {
 #define FIRST_MAGIC_STRING 0x7f
 #define ELF_STRING "ELF"
 
-	if (info->mem[0] != FIRST_MAGIC_STRING && strcmp((char *)(&info->mem[1]), ELF_STRING)) {
+	if (handle->mem[0] != FIRST_MAGIC_STRING && strcmp((char *)(&handle->mem[1]), ELF_STRING)) {
 		fprintf(stderr, "Not an ELF");
 		return -1;
 	}
@@ -199,8 +199,9 @@ static const char *__get_elf_header_machine(unsigned int machine)
 	}
 }
 
-static void __print_elf_header(elf_info_s info)
+static void __print_elf_header(elf_h handle)
 {
+	elf64_info_s info = handle->elf64;
 	Elf64_Ehdr *ehdr = info->ehdr;
 
 	printf("ELF Header:\n");
@@ -248,27 +249,31 @@ static void __print_elf_header(elf_info_s info)
 	printf("\n");
 }
 
-static void __print_section_header(elf_info_s info)
+static void __print_section_header(elf_h handle)
 {
 	int i;
 	unsigned char *string_table;
+	elf64_info_s info = handle->elf64;
+	Elf64_Ehdr *ehdr = info->ehdr;
 	Elf64_Shdr *shdr = info->shdr;
 
-	printf("\n =====\tSection Header\t===== \n");
-	string_table = &info->mem[shdr[info->ehdr->e_shstrndx].sh_offset];
-	for (i = 0; i < info->ehdr->e_shnum; i++)
+	printf("Section Header : \n");
+	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
+	for (i = 0; i < ehdr->e_shnum; i++)
 		printf("%s : 0x%lx\n", &string_table[shdr[i].sh_name], shdr[i].sh_addr);
 	printf("\n");
 }
 
-static void __print_program_header(elf_info_s info)
+static void __print_program_header(elf_h handle)
 {
 	char *interp;
 	int i;
+	elf64_info_s info = handle->elf64;
+	Elf64_Ehdr *ehdr = info->ehdr;
 	Elf64_Phdr *phdr = info->phdr;
 
-	printf("\n =====\tProgram Header\t===== \n");
-	for (i = 0; i < info->ehdr->e_phnum; i++) {
+	printf("Program Header : ");
+	for (i = 0; i < ehdr->e_phnum; i++) {
 		switch(phdr[i].p_type) {
 			case PT_LOAD :
 				if (phdr[i].p_offset == 0)
@@ -277,7 +282,7 @@ static void __print_program_header(elf_info_s info)
 					printf("Data segment: 0x%lx\n", phdr[i].p_vaddr);
 				break;
 			case PT_INTERP :
-				interp = strdup((char *)(&info->mem[phdr[i].p_offset]));
+				interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
 				printf("Interpreter: %s\n", interp);
 				free(interp);
 				break;
@@ -294,17 +299,78 @@ static void __print_program_header(elf_info_s info)
 	}
 }
 
-void elf_parser_print_header(elf_info_s info, elf_parser_header_type_e type)
+static uint8_t *__get_mapped_mem(int fd)
+{
+	struct stat st;
+	uint8_t *mem;
+
+	errno = 0;
+	if (fstat(fd, &st) < 0) {
+		perror("fstat");
+		exit(-1);
+	}
+
+	mem = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (mem == MAP_FAILED) {
+		perror("mmap");
+		exit(-1);
+	}
+
+	return mem;
+}
+
+static void __set_elf_info(int fd, elf_h *handle)
+{
+	elf_h h = *handle;
+	char buf[EI_NIDENT];
+	elf64_info_s elf64;
+	elf32_info_s elf32;
+	ssize_t size;
+
+	size = read(fd, buf, EI_NIDENT);
+	if (size == 0 || size < EI_NIDENT) {
+		perror("read");
+		exit(-1);
+	}
+
+	if (buf[EI_CLASS] == ELF32) {
+		elf32 = (void *)calloc(1, sizeof(struct elf32_info));
+		if (elf32 == NULL) {
+			fprintf(stderr, "OOM");
+			exit(-1);
+		}
+		elf32->ehdr = (Elf32_Ehdr *)h->mem;
+		elf32->phdr = (Elf32_Phdr *)&(h->mem[elf32->ehdr->e_phoff]);
+		elf32->shdr = (Elf32_Shdr *)&(h->mem[elf32->ehdr->e_shoff]);
+		h->elf32 = elf32;
+	} else if (buf[EI_CLASS] == ELF64) {
+		elf64 = (void *)calloc(1, sizeof(struct elf64_info));
+		if (elf64 == NULL) {
+			fprintf(stderr, "OOM");
+			exit(-1);
+		}
+		elf64->ehdr = (Elf64_Ehdr *)h->mem;
+		elf64->phdr = (Elf64_Phdr *)&(h->mem[elf64->ehdr->e_phoff]);
+		elf64->shdr = (Elf64_Shdr *)&(h->mem[elf64->ehdr->e_shoff]);
+		h->elf64 = elf64;
+	} else {
+		fprintf(stderr, "ELF Class NONE");
+		exit(-1);
+	}
+	h->arch = buf[EI_CLASS];
+}
+
+void elf_parser_print_header(elf_h handle, elf_parser_header_type_e type)
 {
 	switch(type) {
 		case ELF_PARSER_ELF_HEADER:
-			__print_elf_header(info);
+			__print_elf_header(handle);
 			break;
 		case ELF_PARSER_PROGRAM_HEADER:
-			__print_program_header(info);
+			__print_program_header(handle);
 			break;
 		case ELF_PARSER_SECTION_HEADER:
-			__print_section_header(info);
+			__print_section_header(handle);
 			break;
 		case ELF_PARSER_ELF_ALL:
 		case ELF_PARSER_MAX:
@@ -314,20 +380,26 @@ void elf_parser_print_header(elf_info_s info, elf_parser_header_type_e type)
 	}
 }
 
-void destroy_elf_info(elf_info_s info)
+void destroy_elf_info(elf_h handle)
 {
-	if (info)
-		free(info);
+	if (handle) {
+		if (handle->filename)
+			free(handle->filename);
+		if (handle->elf64)
+			free(handle->elf64);
+		if (handle->elf32)
+			free(handle->elf32);
+		free(handle);
+	}
 }
 
-elf_info_s init_elf_info(const char *elf_file)
+elf_h init_elf_info(const char *elf_file)
 {
 	int fd;
-	struct stat st;
-	elf_info_s info = NULL;
+	elf_h handle = NULL;
 
-	info = (elf_info_s)calloc(1, sizeof(struct elf_info));
-	if (info == NULL) {
+	handle = (elf_h)calloc(1, sizeof(struct elf_info));
+	if (handle == NULL) {
 		fprintf(stderr, "OOM");
 		exit(-1);
 	}
@@ -339,31 +411,17 @@ elf_info_s init_elf_info(const char *elf_file)
 		exit(-1);
 	}
 
-	errno = 0;
-	if (fstat(fd, &st) < 0) {
-		perror("fstat");
-		exit(-1);
-	}
+	handle->filename = strdup(elf_file);
+	handle->mem = __get_mapped_mem(fd);
+	__set_elf_info(fd, &handle);
 
-	info->mem = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (info->mem == MAP_FAILED) {
-		perror("mmap");
-		exit(-1);
-	}
-
-	info->ehdr = (Elf64_Ehdr *)info->mem;
-	info->phdr = (Elf64_Phdr *)&(info->mem[info->ehdr->e_phoff]);
-	info->shdr = (Elf64_Shdr *)&(info->mem[info->ehdr->e_shoff]);
-
-	if (is_elf_file(info) < 0) {
+	if (is_elf_file(handle) < 0) {
 		fprintf(stderr, "%s is not ELF file", elf_file);
-		destroy_elf_info(info);
+		destroy_elf_info(handle);
 		exit(-1);
 	}
 
 	close(fd);
 
-	return info;
+	return handle;
 }
-
-

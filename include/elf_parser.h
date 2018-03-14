@@ -21,11 +21,11 @@ typedef enum _elf_parser_header_type {
 	ELF_PARSER_MAX
 } elf_parser_header_type_e;
 
-void elf_parser_print_header(elf_info_s info, elf_parser_header_type_e type);
+void elf_parser_print_header(elf_h info, elf_parser_header_type_e type);
 
-elf_info_s init_elf_info(const char *elf_file);
+elf_h init_elf_info(const char *elf_file);
 
-void destroy_elf_info(elf_info_s info);
+void destroy_elf_info(elf_h info);
 
 #ifdef __cplusplus
 }

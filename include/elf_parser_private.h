@@ -9,28 +9,32 @@
 extern "C" {
 #endif
 
-typedef struct elf_info *elf_info_s;
-typedef struct elf_info_2 *elf_info_32_s;
+#define ELF32 ELFCLASS32
+#define ELF64 ELFCLASS64
+
+typedef struct elf_info *elf_h;
+typedef struct elf64_info *elf64_info_s;
+typedef struct elf32_info *elf32_info_s;
 
 struct elf_info {
+	char arch;
+	char *filename;
+	uint8_t *mem;
+	elf64_info_s elf64;
+	elf32_info_s elf32;
+} elf_info;
+
+struct elf64_info {
 	Elf64_Ehdr *ehdr;
 	Elf64_Phdr *phdr;
 	Elf64_Shdr *shdr;
-	uint8_t *mem;
-	char *symname;
-	struct user_regs_struct pt_reg;
-	char *exec;
-} elf_info;
+} elf64_info;
 
-struct elf_info_32 {
+struct elf32_info {
 	Elf32_Ehdr *ehdr;
 	Elf32_Phdr *phdr;
 	Elf32_Shdr *shdr;
-	uint8_t *mem;
-	char *symname;
-	struct user_regs_struct pt_reg;
-	char *exec;
-} elf_info_32;
+} elf32_info;
 
 #define EHDR_DATA_LSB "2's complement, little endian"
 #define EHDR_DATA_MSB "2's complement, big endian"

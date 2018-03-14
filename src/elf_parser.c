@@ -299,7 +299,7 @@ static void __print_elf32_header(elf_h handle)
 	printf("\n");
 }
 
-static void __print_section_header(elf_h handle)
+static void __print_section_header_64_bit(elf_h handle)
 {
 	int i;
 	unsigned char *string_table;
@@ -314,7 +314,22 @@ static void __print_section_header(elf_h handle)
 	printf("\n");
 }
 
-static void __print_program_header(elf_h handle)
+static void __print_section_header_32_bit(elf_h handle)
+{
+	int i;
+	unsigned char *string_table;
+	elf32_info_s info = handle->elf32;
+	Elf32_Ehdr *ehdr = info->ehdr;
+	Elf32_Shdr *shdr = info->shdr;
+
+	printf("Section Header : \n");
+	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
+	for (i = 0; i < ehdr->e_shnum; i++)
+		printf("%s : 0x%x\n", &string_table[shdr[i].sh_name], shdr[i].sh_addr);
+	printf("\n");
+}
+
+static void __print_program_header_64_bit(elf_h handle)
 {
 	char *interp;
 	int i;
@@ -322,28 +337,63 @@ static void __print_program_header(elf_h handle)
 	Elf64_Ehdr *ehdr = info->ehdr;
 	Elf64_Phdr *phdr = info->phdr;
 
-	printf("Program Header : ");
+	printf("Program Header : \n");
 	for (i = 0; i < ehdr->e_phnum; i++) {
 		switch(phdr[i].p_type) {
 			case PT_LOAD :
 				if (phdr[i].p_offset == 0)
-					printf("Text segment: 0x%lx\n", phdr[i].p_vaddr);
+					printf(" Text segment : 0x%016lx\n", phdr[i].p_vaddr);
 				else
-					printf("Data segment: 0x%lx\n", phdr[i].p_vaddr);
+					printf(" Data segment : 0x%016lx\n", phdr[i].p_vaddr);
 				break;
 			case PT_INTERP :
 				interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
-				printf("Interpreter: %s\n", interp);
+				printf(" Interpreter : %s\n", interp);
 				free(interp);
 				break;
 			case PT_NOTE :
-				printf("Note segment: 0x%lx\n", phdr[i].p_vaddr);
+				printf(" Note segment : 0x%016lx\n", phdr[i].p_vaddr);
 				break;
 			case PT_DYNAMIC:
-				printf("Dynamic segment: 0x%lx\n", phdr[i].p_vaddr);
+				printf(" Dynamic segment : 0x%016lx\n", phdr[i].p_vaddr);
 				break;
 			case PT_PHDR:
-				printf("Phdr segment: 0x%lx\n", phdr[i].p_vaddr);
+				printf(" Phdr segment : 0x%016lx\n", phdr[i].p_vaddr);
+				break;
+		}
+	}
+}
+
+static void __print_program_header_32_bit(elf_h handle)
+{
+	char *interp;
+	int i;
+	elf32_info_s info = handle->elf32;
+	Elf32_Ehdr *ehdr = info->ehdr;
+	Elf32_Phdr *phdr = info->phdr;
+
+	printf("Program Header : \n");
+	for (i = 0; i < ehdr->e_phnum; i++) {
+		switch(phdr[i].p_type) {
+			case PT_LOAD :
+				if (phdr[i].p_offset == 0)
+					printf(" Text segment : 0x%x\n", phdr[i].p_vaddr);
+				else
+					printf(" Data segment : 0x%x\n", phdr[i].p_vaddr);
+				break;
+			case PT_INTERP :
+				interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
+				printf(" Interpreter : %s\n", interp);
+				free(interp);
+				break;
+			case PT_NOTE :
+				printf(" Note segment : 0x%x\n", phdr[i].p_vaddr);
+				break;
+			case PT_DYNAMIC:
+				printf(" Dynamic segment : 0x%x\n", phdr[i].p_vaddr);
+				break;
+			case PT_PHDR:
+				printf(" Phdr segment : 0x%x\n", phdr[i].p_vaddr);
 				break;
 		}
 	}
@@ -422,10 +472,16 @@ void elf_parser_print_header(elf_h handle, elf_parser_header_type_e type)
 				__print_elf64_header(handle);
 			break;
 		case ELF_PARSER_PROGRAM_HEADER:
-			__print_program_header(handle);
+			if (is_32bit)
+				__print_program_header_32_bit(handle);
+			else
+				__print_program_header_64_bit(handle);
 			break;
 		case ELF_PARSER_SECTION_HEADER:
-			__print_section_header(handle);
+			if (is_32bit)
+				__print_section_header_32_bit(handle);
+			else
+				__print_section_header_64_bit(handle);
 			break;
 		case ELF_PARSER_ELF_ALL:
 		case ELF_PARSER_MAX:

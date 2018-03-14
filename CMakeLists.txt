@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-PROJECT(ftrace)
+PROJECT(elfparser)
 
 SET(PROJECT_VERSION_MAJOR 0)
 SET(PROJECT_VERSION_MINOR 1)
@@ -13,7 +13,6 @@ SET(OUTPUT_ELF
 SET(SRC
 	./src/main.c
 	./src/elf_parser.c
-	#./src/ptrace_util.c
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)

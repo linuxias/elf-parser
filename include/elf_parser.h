@@ -7,6 +7,12 @@
 extern "C" {
 #endif
 
+#define OPT_HELP			'h'
+#define OPT_ELF				'e'
+#define OPT_PROGRAM			'p'
+#define OPT_SECTION			's'
+#define OPT_ALL				'a'
+
 typedef enum _elf_parser_header_type {
 	ELF_PARSER_ELF_ALL = -1,
 	ELF_PARSER_ELF_HEADER,

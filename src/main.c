@@ -5,30 +5,32 @@
 
 #include "elf_parser.h"
 #include "elf_parser_private.h"
-#include "ftrace_private.h"
 
-const char *short_options = "heps";
+const char *short_options = "hepsa";
 const struct option long_options[] = {
 	{"help", 0, NULL, 'h'},
 	{"elf", 0, NULL, 'e'},
 	{"program", 0, NULL, 'p'},
 	{"section", 0, NULL, 's'},
+	{"all, 0, NULL, 'a'"}
 };
 
 static void __print_usage()
 {
 	/* usage */
-	printf("usage : ftrace [-h]\n");
-	printf("               [-e path] [-p path] [-s path]\n");
+	printf("Usage : sreadelf [-h|--help]\n");
+	printf("                 [-e|--elf path] [-p|--program path] [-s|--section path]\n");
+	printf("                 [-a|--all path]\n");
 
 	printf("\n");
 
 	/*Output format*/
 	printf("Option args : \n");
-	printf("-h, --help              print this message\n");
-	printf("-e, --elf               print elf header\n");
-	printf("-p, --program           print program header\n");
-	printf("-s, --section           print section header\n");
+	printf("-h, --help              Print this message\n");
+	printf("-e, --elf               Print elf header\n");
+	printf("-p, --program           Print program header\n");
+	printf("-s, --section           Print section header\n");
+	printf("-a, --all               Print all header\n");
 }
 
 static void __run_option(int argc, char *argv[])
@@ -45,17 +47,19 @@ static void __run_option(int argc, char *argv[])
 			break;
 
 		switch(opt) {
-			case FTRACE_OPT_HELP:
+			case OPT_HELP:
 				__print_usage();
 				break;
-			case FTRACE_OPT_ELF:
+			case OPT_ELF:
 				elf_parser_print_header(info, ELF_PARSER_ELF_HEADER);
 				break;
-			case FTRACE_OPT_PROGRAM:
+			case OPT_PROGRAM:
 				elf_parser_print_header(info, ELF_PARSER_PROGRAM_HEADER);
 				break;
-			case FTRACE_OPT_SECTION:
+			case OPT_SECTION:
 				elf_parser_print_header(info, ELF_PARSER_SECTION_HEADER);
+				break;
+			case OPT_ALL:
 				break;
 			default:
 				__print_usage();

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <ncurses.h>
 #include "elf_parser.h"
 #include "elf_parser_private.h"
 

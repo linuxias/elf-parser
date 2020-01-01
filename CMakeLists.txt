@@ -13,6 +13,7 @@ SET(OUTPUT_ELF
 SET(SRC
 	./src/main.c
 	./src/elf_parser.c
+	./src/tui.c
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)

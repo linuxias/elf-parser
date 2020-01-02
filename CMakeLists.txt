@@ -18,8 +18,19 @@ SET(SRC
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIR})
+INCLUDE(FindPkgConfig)
+pkg_check_modules(pkgs REQUIRED
+    ncurses
+    menu
+    form
+)
+
+FOREACH(flag ${pkgs_CFLAGS})
+    SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fvisibility=hidden -g -Wall")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 
 ADD_EXECUTABLE(${OUTPUT_ELF} ${SRC})
-TARGET_LINK_LIBRARIES(${OUTPUT_ELF} ${CURSES_LIBRARIES})
+TARGET_LINK_LIBRARIES(${OUTPUT_ELF} ${pkgs_LDFLAGS})

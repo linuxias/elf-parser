@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <ncurses.h>
+
 #include "elf_parser.h"
 #include "elf_parser_private.h"
+#include "tui.h"
 
 const char *short_options = "hepsa";
 const struct option long_options[] = {
@@ -74,6 +75,9 @@ int main(int argc, char *argv[])
 		__print_usage();
 		exit(0);
 	}
+
+	tui_create();
+	tui_destroy();
 
 	__run_option(argc, argv);
 

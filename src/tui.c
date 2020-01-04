@@ -18,12 +18,12 @@ static char *_item_list[] = {
 };
 
 static ITEM **_items;
+static ITEM *_cur_item;
 static int _nr_item;
 static MENU *_menu;
 static WINDOW *_menu_win;
 
 static void __print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color)
-
 {
 	int length, x, y;
 	float temp;
@@ -99,6 +99,11 @@ int tui_create(void)
 			break;
 			case KEY_UP:
 			menu_driver(_menu, REQ_UP_ITEM);
+			break;
+			case 10:
+			_cur_item = current_item(_menu);
+			if (strcmp(item_name(_cur_item), "Exit") == 0)
+				return 0;
 			break;
 		}
 		wrefresh(_menu_win);

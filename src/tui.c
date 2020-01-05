@@ -22,6 +22,8 @@ static ITEM *_cur_item;
 static int _nr_item;
 static MENU *_menu;
 static WINDOW *_menu_win;
+static WINDOW *info_win;
+static tui_info _tui_info;
 
 static void __print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color)
 {
@@ -48,19 +50,19 @@ static void __print_in_middle(WINDOW *win, int starty, int startx, int width, ch
 	refresh();
 }
 
-static void __create_menu(void)
+static void __create_menu(int x, int y)
 {
 	int i;
 
 	_nr_item = ARRAY_SIZE(_item_list);
 	_items = (ITEM **)calloc(_nr_item, sizeof(ITEM *));
 
-	for (i =0 ; i < _nr_item - 1; i++)
+	for (i = 0; i < _nr_item - 1; i++)
 		_items[i] = new_item(_item_list[i], "");
 
 	_menu = new_menu((ITEM **)_items);
 
-	_menu_win = newwin(LINES - 2, COLS/2, 0, 0);
+	_menu_win = newwin(y, x, 0, 0);
 
 	keypad(_menu_win, TRUE);
 
@@ -72,14 +74,31 @@ static void __create_menu(void)
 	set_menu_mark(_menu, "* ");
 
 	box(_menu_win, 0, 0);
-	__print_in_middle(_menu_win, 1, 0, COLS/2, "ELF Parser", COLOR_PAIR(1));
+	__print_in_middle(_menu_win, 1, 0, x, "ELF Parser", COLOR_PAIR(1));
 	mvwaddch(_menu_win, 2, 0, ACS_LTEE);
-	mvwhline(_menu_win, 2, 1, ACS_HLINE, COLS/2 - 2);
-	mvwaddch(_menu_win, 2, COLS/2, ACS_RTEE);
+	mvwhline(_menu_win, 2, 1, ACS_HLINE, _tui_info.max_x/3 - 2);
+	mvwaddch(_menu_win, 2, x, ACS_RTEE);
 	refresh();
 
 	post_menu(_menu);
 	wrefresh(_menu_win);
+}
+
+static void __create_win(int x, int y)
+{
+	info_win = newwin(LINES, x - 1, 0, _tui_info.max_x - x);
+	box(info_win, 0, 0);
+	mvwprintw(info_win, 1, 1, "Press F1 to exit");
+	wrefresh(info_win);
+}
+
+static void __update_tui_info(void)
+{
+	getmaxyx(stdscr, _tui_info.max_y, _tui_info.max_x);
+	_tui_info.menu_x = _tui_info.max_x / 3;
+	_tui_info.menu_y = _tui_info.max_y;
+	_tui_info.info_x = (_tui_info.max_x / 3) * 2;
+	_tui_info.info_y = _tui_info.max_y;
 }
 
 int tui_create(void)
@@ -89,21 +108,24 @@ int tui_create(void)
 	noecho();
 	keypad(stdscr, TRUE);
 
-	__create_menu();
+	__update_tui_info();
+
+	__create_menu(_tui_info.menu_x, _tui_info.menu_y);
+	__create_win(_tui_info.info_x, _tui_info.info_y);
 
 	int c;
 	while ((c = getch()) != KEY_F(1)) {
-		switch(c)
-		{   case KEY_DOWN:
-			menu_driver(_menu, REQ_DOWN_ITEM);
-			break;
+		switch(c) {
+			case KEY_DOWN:
+				menu_driver(_menu, REQ_DOWN_ITEM);
+				break;
 			case KEY_UP:
-			menu_driver(_menu, REQ_UP_ITEM);
-			break;
+				menu_driver(_menu, REQ_UP_ITEM);
+				break;
 			case 10:
-			_cur_item = current_item(_menu);
-			if (strcmp(item_name(_cur_item), "Exit") == 0)
-				return 0;
+				_cur_item = current_item(_menu);
+				if (strcmp(item_name(_cur_item), "Exit") == 0)
+					return 0;
 			break;
 		}
 		wrefresh(_menu_win);

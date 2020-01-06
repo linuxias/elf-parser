@@ -10,8 +10,20 @@ typedef struct {
 	int info_y;
 } tui_info;
 
+typedef enum _tui_selection {
+    TUI_SELECTION_NONE = -1,
+    TUI_SELECTION_ELF,
+    TUI_SELECTION_PROGRAM,
+    TUI_SELECTION_SECTION,
+    TUI_SELECTION_EXIT
+} tui_selection_e;
+
 int tui_create(void);
 
 void tui_destroy(void);
+
+int tui_get_selection(void);
+
+void *tui_display_routine(void *arg);
 
 #endif /* __TUI_H__ */

@@ -113,25 +113,6 @@ int tui_create(void)
 	__create_menu(_tui_info.menu_x, _tui_info.menu_y);
 	__create_win(_tui_info.info_x, _tui_info.info_y);
 
-	int c;
-	while ((c = getch()) != KEY_F(1)) {
-		switch(c) {
-			case KEY_DOWN:
-				menu_driver(_menu, REQ_DOWN_ITEM);
-				break;
-			case KEY_UP:
-				menu_driver(_menu, REQ_UP_ITEM);
-				break;
-			case 10:
-				_cur_item = current_item(_menu);
-				if (strcmp(item_name(_cur_item), "Exit") == 0)
-					return 0;
-			break;
-		}
-		wrefresh(_menu_win);
-	}
-
-	getch();
 	return 0;
 }
 
@@ -149,4 +130,31 @@ void tui_destroy(void)
 	}
 
 	endwin();
+}
+
+int tui_get_selection(void)
+{
+	int c;
+    int index;
+	while ((c = getch()) != KEY_F(1)) {
+		switch(c) {
+			case KEY_DOWN:
+				menu_driver(_menu, REQ_DOWN_ITEM);
+				break;
+			case KEY_UP:
+				menu_driver(_menu, REQ_UP_ITEM);
+				break;
+			case 10:
+				_cur_item = current_item(_menu);
+                index = item_index(_cur_item);
+                return index;
+		}
+		wrefresh(_menu_win);
+	}
+    return TUI_SELECTION_NONE;
+}
+
+void *tui_display_routine(void *arg)
+{
+    return NULL;
 }

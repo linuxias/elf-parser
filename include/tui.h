@@ -24,6 +24,4 @@ void tui_destroy(void);
 
 int tui_get_selection(void);
 
-void *tui_display_routine(void *arg);
-
 #endif /* __TUI_H__ */

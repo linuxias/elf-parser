@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
-#include <pthread.h>
+#include <libgen.h>
 
 #include "elf_parser.h"
 #include "elf_parser_private.h"
@@ -17,21 +18,21 @@ static void __print_usage()
 int main(int argc, char *argv[])
 {
     int ret;
-    pthread_t display_ths;
+    char *file_name;
 
-	if (argc != 2) {
+    if (argc != 2) {
 		__print_usage();
 		exit(-1);
 	}
 
-	tui_create();
-
-    ret = pthread_create(&display_ths, NULL, tui_display_routine, NULL);
+    file_name = argv[1];
+    ret = access(file_name, F_OK);
     if (ret != 0) {
-        perror("pthread_create()");
-        tui_destroy();
+        perror("access");
         exit(-1);
     }
+
+	tui_create();
 
     while (1) {
         ret = tui_get_selection();

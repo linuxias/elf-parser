@@ -153,8 +153,3 @@ int tui_get_selection(void)
 	}
     return TUI_SELECTION_NONE;
 }
-
-void *tui_display_routine(void *arg)
-{
-    return NULL;
-}

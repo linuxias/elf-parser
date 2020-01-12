@@ -14,6 +14,7 @@ SET(SRC
 	./src/main.c
 	./src/elf_parser.c
 	./src/tui.c
+	./src/s_list.c
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -22,7 +22,7 @@ static ITEM *_cur_item;
 static int _nr_item;
 static MENU *_menu;
 static WINDOW *_menu_win;
-static WINDOW *info_win;
+static WINDOW *_info_win;
 static tui_info _tui_info;
 
 static void __print_in_middle(WINDOW *win, int starty, int startx, int width, char *string, chtype color)
@@ -86,10 +86,10 @@ static void __create_menu(int x, int y)
 
 static void __create_win(int x, int y)
 {
-	info_win = newwin(LINES, x - 1, 0, _tui_info.max_x - x);
-	box(info_win, 0, 0);
-	mvwprintw(info_win, 1, 1, "Press F1 to exit");
-	wrefresh(info_win);
+	_info_win = newwin(LINES, x - 1, 0, _tui_info.max_x - x);
+	box(_info_win, 0, 0);
+	mvwprintw(_info_win, 1, 1, "Press F1 to exit");
+	wrefresh(_info_win);
 }
 
 static void __update_tui_info(void)
@@ -152,4 +152,24 @@ int tui_get_selection(void)
 		wrefresh(_menu_win);
 	}
     return TUI_SELECTION_NONE;
+}
+
+int tui_print_str_list(SList *list)
+{
+    int i = 1;
+    SList *print_list = list;
+
+    if (print_list == NULL)
+        return -1;
+
+    wmove(_info_win, 1, 1);
+    wclrtoeol(_info_win);
+    while (print_list) {
+	    mvwprintw(_info_win, i, 1, "%s", s_list_get_data(print_list));
+        print_list = print_list->next;
+        i++;
+    }
+    wrefresh(_info_win);
+
+    return 0;
 }

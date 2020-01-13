@@ -1,7 +1,7 @@
 #ifndef __S_LIST_H__
 #define __S_LIST_H__
 
-#define ERR(msg) do { \
+#define S_ERR(msg) do { \
 		printf("%s", msg); \
 } while (0);
 

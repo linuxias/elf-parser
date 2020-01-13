@@ -1,6 +1,8 @@
 #ifndef __TUI_H__
 #define __TUI_H__
 
+#include "s_list.h"
+
 typedef struct {
 	int max_x;
 	int max_y;
@@ -23,5 +25,7 @@ int tui_create(void);
 void tui_destroy(void);
 
 int tui_get_selection(void);
+
+int tui_print_str_list(SList *list);
 
 #endif /* __TUI_H__ */

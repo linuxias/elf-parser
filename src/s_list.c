@@ -9,7 +9,7 @@ static SList *_s_list_alloc(void)
 
 	list = (SList *)calloc(1, sizeof(SList));
 	if (list == NULL) {
-		ERR("OOM");
+		S_ERR("OOM");
 		return NULL;
 	}
 
@@ -24,7 +24,7 @@ SList *s_list_append(SList *list, spointer data)
 	new_list = _s_list_alloc();
 	if (new_list == NULL)
 	{
-		ERR("OOM");
+		S_ERR("OOM");
 		return NULL;
 	}
 

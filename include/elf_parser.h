@@ -3,6 +3,8 @@
 
 #include "elf_parser_private.h"
 
+#include "s_list.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,7 +23,7 @@ typedef enum _elf_parser_header_type {
 	ELF_PARSER_MAX
 } elf_parser_header_type_e;
 
-void elf_parser_print_header(elf_h info, elf_parser_header_type_e type);
+SList* elf_parser_get_header_info(elf_h info, elf_parser_header_type_e type);
 
 elf_h init_elf_info(const char *elf_file);
 

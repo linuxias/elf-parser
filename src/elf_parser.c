@@ -12,6 +12,9 @@
 
 #include "elf_parser.h"
 #include "elf_parser_private.h"
+#include "s_list.h"
+
+#define BUF_LEN 256
 
 static int is_elf_file(elf_h handle)
 {
@@ -199,204 +202,290 @@ static const char *__get_elf_header_machine(unsigned int machine)
 	}
 }
 
-static void __print_elf64_header(elf_h handle)
+static SList* __print_elf64_header(elf_h handle)
 {
+    char buf[BUF_LEN];
 	elf64_info_s info = handle->elf64;
 	Elf64_Ehdr *ehdr = info->ehdr;
+    SList *list = NULL;
 
-	printf("ELF Header:\n");
-	printf("  Magic : ");
+//	printf("ELF Header:\n");
+//	printf("  Magic : ");
 	for (int i = 0; i < EI_NIDENT; i++) {
-		printf("%02x ", ehdr->e_ident[i]);
+//		printf("%02x ", ehdr->e_ident[i]);
 	}
-	printf("\n");
-	printf("  Class:                                  %s\n",
+
+	snprintf(buf, BUF_LEN, "  Class:                                  %s",
 			__get_elf_header_class(ehdr->e_ident[EI_CLASS]));
-	printf("  Data:                                   %s\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Data:                                   %s",
 			__get_elf_header_data(ehdr->e_ident[EI_DATA]));
-	printf("  Version:                                %d(%s)\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Version:                                %d(%s)",
 			ehdr->e_ident[EI_VERSION], __get_elf_header_version(ehdr->e_ident[EI_VERSION]));
-	printf("  OS/ABI:                                 %s\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  OS/ABI:                                 %s",
 			__get_elf_header_osabi(ehdr->e_ident[EI_OSABI]));
-	printf("  ABI Version:                            %d\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  ABI Version:                            %d",
 			ehdr->e_ident[EI_ABIVERSION]);
-	printf("  Type:                                   %s\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Type:                                   %s",
 			__get_elf_header_type(ehdr->e_type));
-	printf("  Machine:                                %s\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Machine:                                %s",
 			__get_elf_header_machine(ehdr->e_machine));
-	printf("  Version:                                0x%d\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Version:                                0x%d",
 			ehdr->e_version);
-	printf("  Entry point address:                    0x%lx\n",
-			ehdr->e_entry);
-	printf("  Start of program headers:               %lu (bytes into file)\n",
-			ehdr->e_phoff);
-	printf("  Start of section headers:               %lu (bytes into file)\n",
-			ehdr->e_shoff);
-	printf("  Flags:                                  0x%x\n",
-			ehdr->e_flags);
-	printf("  Size of this headers:                   %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Entry point address:                    0x%x",
+			(unsigned int)ehdr->e_entry);
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Start of program headers:               %u (bytes into file)",
+			(unsigned int)ehdr->e_phoff);
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Start of section headers:               %u (bytes into file)",
+			(unsigned int)ehdr->e_shoff);
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Flags:                                  0x%x",
+			(unsigned int)ehdr->e_flags);
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Size of this headers:                   %d (byte)",
 			ehdr->e_ehsize);
-	printf("  Size of program headers:                %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Size of program headers:                %d (byte)",
 			ehdr->e_phentsize);
-	printf("  Number of program headers:              %d\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Number of program headers:              %d",
 			ehdr->e_phnum);
-	printf("  Size of section headers:                %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Size of section headers:                %d (byte)",
 			ehdr->e_shentsize);
-	printf("  Number of section headers:              %d\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Number of section headers:              %d",
 			ehdr->e_shnum);
-	printf("  Section header string table index:      %d\n",
+    list = s_list_append(list, strdup(buf));
+
+	snprintf(buf, BUF_LEN, "  Section header string table index:      %d",
 			ehdr->e_shstrndx);
-	printf("\n");
+    list = s_list_append(list, strdup(buf));
+
+    return list;
 }
 
-static void __print_elf32_header(elf_h handle)
+static SList* __print_elf32_header(elf_h handle)
 {
+    SList *list = NULL;
+    char buf[BUF_LEN];
 	elf32_info_s info = handle->elf32;
 	Elf32_Ehdr *ehdr = info->ehdr;
 
-	printf("ELF Header:\n");
-	printf("  Magic : ");
+	list = s_list_append(list, strdup("ELF Header:\n"));
+	list = s_list_append(list, strdup("  Magic : "));
 	for (int i = 0; i < EI_NIDENT; i++) {
 		printf("%02x ", ehdr->e_ident[i]);
 	}
-	printf("\n");
-	printf("  Class:                                  %s\n",
+	snprintf(buf, BUF_LEN, "  Class:                                  %s",
 			__get_elf_header_class(ehdr->e_ident[EI_CLASS]));
-	printf("  Data:                                   %s\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Data:                                   %s",
 			__get_elf_header_data(ehdr->e_ident[EI_DATA]));
-	printf("  Version:                                %d(%s)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Version:                                %d(%s)",
 			ehdr->e_ident[EI_VERSION], __get_elf_header_version(ehdr->e_ident[EI_VERSION]));
-	printf("  OS/ABI:                                 %s\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  OS/ABI:                                 %s",
 			__get_elf_header_osabi(ehdr->e_ident[EI_OSABI]));
-	printf("  ABI Version:                            %d\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  ABI Version:                            %d",
 			ehdr->e_ident[EI_ABIVERSION]);
-	printf("  Type:                                   %s\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Type:                                   %s",
 			__get_elf_header_type(ehdr->e_type));
-	printf("  Machine:                                %s\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Machine:                                %s",
 			__get_elf_header_machine(ehdr->e_machine));
-	printf("  Version:                                0x%d\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Version:                                0x%d",
 			ehdr->e_version);
-	printf("  Entry point address:                    0x%x\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Entry point address:                    0x%x",
 			ehdr->e_entry);
-	printf("  Start of program headers:               %u (bytes into file)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Start of program headers:               %u (bytes into file)",
 			ehdr->e_phoff);
-	printf("  Start of section headers:               %u (bytes into file)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Start of section headers:               %u (bytes into file)",
 			ehdr->e_shoff);
-	printf("  Flags:                                  0x%x\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Flags:                                  0x%x",
 			ehdr->e_flags);
-	printf("  Size of this headers:                   %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Size of this headers:                   %d (byte)",
 			ehdr->e_ehsize);
-	printf("  Size of program headers:                %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Size of program headers:                %d (byte)",
 			ehdr->e_phentsize);
-	printf("  Number of program headers:              %d\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Number of program headers:              %d\n",
 			ehdr->e_phnum);
-	printf("  Size of section headers:                %d (byte)\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Size of section headers:                %d (byte)",
 			ehdr->e_shentsize);
-	printf("  Number of section headers:              %d\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Number of section headers:              %d",
 			ehdr->e_shnum);
-	printf("  Section header string table index:      %d\n",
+    list = s_list_append(list, strdup(buf));
+	snprintf(buf, BUF_LEN, "  Section header string table index:      %d",
 			ehdr->e_shstrndx);
-	printf("\n");
+    list = s_list_append(list, strdup(buf));
+
+    return list;
 }
 
-static void __print_section_header_64_bit(elf_h handle)
+static SList* __print_section_header_64_bit(elf_h handle)
 {
 	int i;
 	unsigned char *string_table;
 	elf64_info_s info = handle->elf64;
 	Elf64_Ehdr *ehdr = info->ehdr;
 	Elf64_Shdr *shdr = info->shdr;
+    SList* list = NULL;
+    char buf[BUF_LEN];
 
-	printf("Section Header : \n");
 	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
-	for (i = 0; i < ehdr->e_shnum; i++)
-		printf("%s : 0x%lx\n", &string_table[shdr[i].sh_name], shdr[i].sh_addr);
-	printf("\n");
+	for (i = 0; i < ehdr->e_shnum; i++) {
+		snprintf(buf, BUF_LEN, "  %s : 0x%x", &string_table[shdr[i].sh_name], (unsigned int)shdr[i].sh_addr);
+        list = s_list_append(list, strdup(buf));
+    }
+
+    return list;
 }
 
-static void __print_section_header_32_bit(elf_h handle)
+static SList* __print_section_header_32_bit(elf_h handle)
 {
 	int i;
 	unsigned char *string_table;
 	elf32_info_s info = handle->elf32;
 	Elf32_Ehdr *ehdr = info->ehdr;
 	Elf32_Shdr *shdr = info->shdr;
+    SList* list = NULL;
+    char buf[BUF_LEN];
 
-	printf("Section Header : \n");
 	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
-	for (i = 0; i < ehdr->e_shnum; i++)
-		printf("%s : 0x%x\n", &string_table[shdr[i].sh_name], shdr[i].sh_addr);
-	printf("\n");
+	for (i = 0; i < ehdr->e_shnum; i++) {
+		snprintf(buf, BUF_LEN, "  %s : 0x%x", &string_table[shdr[i].sh_name], (unsigned int)shdr[i].sh_addr);
+        list = s_list_append(list, strdup(buf));
+    }
+
+    return list;
 }
 
-static void __print_program_header_64_bit(elf_h handle)
+static SList* __print_program_header_64_bit(elf_h handle)
 {
+    SList *list = NULL;
+    char buf[BUF_LEN];
 	char *interp;
 	int i;
-	elf64_info_s info = handle->elf64;
-	Elf64_Ehdr *ehdr = info->ehdr;
-	Elf64_Phdr *phdr = info->phdr;
+    elf64_info_s info = handle->elf64;
+    Elf64_Ehdr *ehdr = info->ehdr;
+    Elf64_Phdr *phdr = info->phdr;
 
-	printf("Program Header : \n");
-	for (i = 0; i < ehdr->e_phnum; i++) {
-		switch(phdr[i].p_type) {
-			case PT_LOAD :
-				if (phdr[i].p_offset == 0)
-					printf(" Text segment : 0x%016lx\n", phdr[i].p_vaddr);
-				else
-					printf(" Data segment : 0x%016lx\n", phdr[i].p_vaddr);
-				break;
-			case PT_INTERP :
-				interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
-				printf(" Interpreter : %s\n", interp);
-				free(interp);
-				break;
-			case PT_NOTE :
-				printf(" Note segment : 0x%016lx\n", phdr[i].p_vaddr);
-				break;
-			case PT_DYNAMIC:
-				printf(" Dynamic segment : 0x%016lx\n", phdr[i].p_vaddr);
-				break;
-			case PT_PHDR:
-				printf(" Phdr segment : 0x%016lx\n", phdr[i].p_vaddr);
-				break;
-		}
-	}
+    snprintf(buf, BUF_LEN, " Program Header :");
+    list = s_list_append(list, strdup(buf));
+    for (i = 0; i < ehdr->e_phnum; i++) {
+        switch(phdr[i].p_type) {
+            case PT_LOAD :
+                if (phdr[i].p_offset == 0)
+                    snprintf(buf, BUF_LEN, "  Text segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                else
+                    snprintf(buf, BUF_LEN, "  Data segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_INTERP :
+                interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
+                snprintf(buf, BUF_LEN, "  Interpreter : %s", interp);
+                list = s_list_append(list, strdup(buf));
+                free(interp);
+                break;
+            case PT_NOTE :
+                snprintf(buf, BUF_LEN, "  Note segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_DYNAMIC:
+                snprintf(buf, BUF_LEN, "  Dynamic segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_PHDR:
+                snprintf(buf, BUF_LEN, "  Phdr segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+        }
+    }
+
+    return list;
 }
 
-static void __print_program_header_32_bit(elf_h handle)
+static SList* __print_program_header_32_bit(elf_h handle)
 {
+    SList *list = NULL;
+    char buf[BUF_LEN];
 	char *interp;
 	int i;
 	elf32_info_s info = handle->elf32;
 	Elf32_Ehdr *ehdr = info->ehdr;
 	Elf32_Phdr *phdr = info->phdr;
 
-	printf("Program Header : \n");
-	for (i = 0; i < ehdr->e_phnum; i++) {
-		switch(phdr[i].p_type) {
-			case PT_LOAD :
-				if (phdr[i].p_offset == 0)
-					printf(" Text segment : 0x%x\n", phdr[i].p_vaddr);
-				else
-					printf(" Data segment : 0x%x\n", phdr[i].p_vaddr);
-				break;
-			case PT_INTERP :
-				interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
-				printf(" Interpreter : %s\n", interp);
-				free(interp);
-				break;
-			case PT_NOTE :
-				printf(" Note segment : 0x%x\n", phdr[i].p_vaddr);
-				break;
-			case PT_DYNAMIC:
-				printf(" Dynamic segment : 0x%x\n", phdr[i].p_vaddr);
-				break;
-			case PT_PHDR:
-				printf(" Phdr segment : 0x%x\n", phdr[i].p_vaddr);
-				break;
-		}
-	}
+    snprintf(buf, BUF_LEN, " Program Header :");
+    list = s_list_append(list, strdup(buf));
+    for (i = 0; i < ehdr->e_phnum; i++) {
+        switch(phdr[i].p_type) {
+            case PT_LOAD :
+                if (phdr[i].p_offset == 0)
+                    snprintf(buf, BUF_LEN, "  Text segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                else
+                    snprintf(buf, BUF_LEN, "  Data segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_INTERP :
+                interp = strdup((char *)(&handle->mem[phdr[i].p_offset]));
+                snprintf(buf, BUF_LEN, "  Interpreter : %s", interp);
+                list = s_list_append(list, strdup(buf));
+                free(interp);
+                break;
+            case PT_NOTE :
+                snprintf(buf, BUF_LEN, "  Note segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_DYNAMIC:
+                snprintf(buf, BUF_LEN, "  Dynamic segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+            case PT_PHDR:
+                snprintf(buf, BUF_LEN, "  Phdr segment : 0x%x", (unsigned int)phdr[i].p_vaddr);
+                list = s_list_append(list, strdup(buf));
+                break;
+        }
+    }
+
+    return list;
 }
 
 static uint8_t *__get_mapped_mem(int fd)
@@ -460,28 +549,29 @@ static void __set_elf_info(int fd, elf_h *handle)
 	h->arch = buf[EI_CLASS];
 }
 
-void elf_parser_print_header(elf_h handle, elf_parser_header_type_e type)
+SList* elf_parser_get_header_info(elf_h handle, elf_parser_header_type_e type)
 {
+    SList *list = NULL;
 	int is_32bit = handle->arch == ELF32 ? 1 : 0;
 
 	switch(type) {
 		case ELF_PARSER_ELF_HEADER:
 			if (is_32bit)
-				__print_elf32_header(handle);
+				list = __print_elf32_header(handle);
 			else
-				__print_elf64_header(handle);
+				list = __print_elf64_header(handle);
 			break;
 		case ELF_PARSER_PROGRAM_HEADER:
 			if (is_32bit)
-				__print_program_header_32_bit(handle);
+				list = __print_program_header_32_bit(handle);
 			else
-				__print_program_header_64_bit(handle);
+				list = __print_program_header_64_bit(handle);
 			break;
 		case ELF_PARSER_SECTION_HEADER:
 			if (is_32bit)
-				__print_section_header_32_bit(handle);
+				list = __print_section_header_32_bit(handle);
 			else
-				__print_section_header_64_bit(handle);
+				list = __print_section_header_64_bit(handle);
 			break;
 		case ELF_PARSER_ELF_ALL:
 		case ELF_PARSER_MAX:
@@ -489,6 +579,8 @@ void elf_parser_print_header(elf_h handle, elf_parser_header_type_e type)
 		default:
 			break;
 	}
+
+    return list;
 }
 
 void destroy_elf_info(elf_h handle)

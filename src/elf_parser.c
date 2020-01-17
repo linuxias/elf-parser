@@ -371,8 +371,15 @@ static SList* __print_section_header_64_bit(elf_h handle)
     char buf[BUF_LEN];
 
 	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
+	snprintf(buf, BUF_LEN, "           [Name]            [Type]          [Address]          [Offset]          [Size]");
+    list = s_list_append(list, strdup(buf));
 	for (i = 0; i < ehdr->e_shnum; i++) {
-		snprintf(buf, BUF_LEN, "  %s : 0x%x", &string_table[shdr[i].sh_name], (unsigned int)shdr[i].sh_addr);
+		snprintf(buf, BUF_LEN, "  %20s  %016u  %016ld  %016ld  %8ld",
+                &string_table[shdr[i].sh_name],
+                shdr[i].sh_type,
+                shdr[i].sh_addr,
+                shdr[i].sh_offset,
+                shdr[i].sh_size);
         list = s_list_append(list, strdup(buf));
     }
 
@@ -390,8 +397,15 @@ static SList* __print_section_header_32_bit(elf_h handle)
     char buf[BUF_LEN];
 
 	string_table = &handle->mem[shdr[ehdr->e_shstrndx].sh_offset];
+	snprintf(buf, BUF_LEN, "           [Name]            [Type]          [Address]          [Offset]          [Size]");
+    list = s_list_append(list, strdup(buf));
 	for (i = 0; i < ehdr->e_shnum; i++) {
-		snprintf(buf, BUF_LEN, "  %s : 0x%x", &string_table[shdr[i].sh_name], (unsigned int)shdr[i].sh_addr);
+		snprintf(buf, BUF_LEN, "  %20s  %016u  %016d  %016d  %8d",
+                &string_table[shdr[i].sh_name],
+                shdr[i].sh_type,
+                shdr[i].sh_addr,
+                shdr[i].sh_offset,
+                shdr[i].sh_size);
         list = s_list_append(list, strdup(buf));
     }
 
